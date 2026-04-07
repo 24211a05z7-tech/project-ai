@@ -50,23 +50,25 @@ app.use(requestLogger);
 
 app.use('/uploads', express.static(uploadDir));
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
-      callbackURL: '/api/auth/google/callback',
-    },
-    async (_accessToken, _refreshToken, profile, done) => {
-      try {
-        const result = await authService.googleAuth(profile);
-        done(null, result);
-      } catch (error) {
-        done(error as Error);
+if (env.GOOGLE_CLIENT_ID) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+        callbackURL: '/api/auth/google/callback',
+      },
+      async (_accessToken, _refreshToken, profile, done) => {
+        try {
+          const result = await authService.googleAuth(profile);
+          done(null, result);
+        } catch (error) {
+          done(error as Error);
+        }
       }
-    }
-  )
-);
+    )
+  );
+}
 app.use(passport.initialize());
 
 app.use('/api', routes);
