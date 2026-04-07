@@ -9,7 +9,10 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  /** Primary role (first element of the roles array). May be absent on older records. */
+  role?: UserRole;
+  /** All roles assigned to the user (matches backend `roles: UserRole[]`). */
+  roles: UserRole[];
   avatar?: string;
   createdAt: string;
   updatedAt: string;

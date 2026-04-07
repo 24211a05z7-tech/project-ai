@@ -73,7 +73,7 @@ export function Sidebar() {
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-white truncate">{user.name}</p>
-                <p className="text-xs text-slate-400 truncate capitalize">{user.role.replace('_', ' ')}</p>
+                <p className="text-xs text-slate-400 truncate capitalize">{(user.roles?.[0] ?? user.role ?? '').replace('_', ' ')}</p>
               </div>
             )}
           </div>

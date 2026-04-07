@@ -19,7 +19,7 @@ type FormData = z.infer<typeof schema>;
 interface CreateProjectModalProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (data: FormData) => Promise<void>;
+  onCreate: (data: FormData) => Promise<unknown>;
 }
 
 export function CreateProjectModal({ open, onClose, onCreate }: CreateProjectModalProps) {

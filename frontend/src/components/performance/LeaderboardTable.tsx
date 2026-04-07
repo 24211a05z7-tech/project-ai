@@ -44,7 +44,7 @@ export function LeaderboardTable({ entries, currentUserId }: LeaderboardTablePro
                   {isCurrentUser && <span className="text-xs text-primary-500">(you)</span>}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">
-                  {entry.user.role.replace('_', ' ')}
+                  {(entry.user.roles?.[0] ?? entry.user.role ?? '').replace('_', ' ')}
                 </p>
               </div>
               <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">

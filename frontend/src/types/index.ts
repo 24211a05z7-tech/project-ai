@@ -27,12 +27,16 @@ export interface Performance {
 export interface ReviewSlot {
   id: string;
   panelMemberId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  capacity: number;
-  bookedCount: number;
   projectId?: string;
+  dateTime: string;
+  duration: number;
+  capacity: number;
+  status: 'open' | 'full' | 'cancelled';
+  bookings: Array<{ userId: string; teamId: string; bookedAt: string }>;
+  location: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Meeting {

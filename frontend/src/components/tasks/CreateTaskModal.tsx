@@ -21,7 +21,7 @@ type FormData = z.infer<typeof schema>;
 interface CreateTaskModalProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (data: FormData) => Promise<void>;
+  onCreate: (data: FormData) => Promise<unknown>;
   defaultProjectId?: string;
   projects?: { id: string; title: string }[];
 }
