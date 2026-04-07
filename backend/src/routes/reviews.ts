@@ -15,8 +15,8 @@ router.use(authenticate);
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const filter: Record<string, unknown> = {};
-    if (req.query.projectId) filter.projectId = req.query.projectId;
-    if (req.query.status) filter.status = req.query.status;
+    if (req.query.projectId) filter.projectId = String(req.query.projectId);
+    if (req.query.status) filter.status = String(req.query.status);
     const slots = await ReviewSlot.find(filter)
       .populate('panelMemberId', 'name email avatar')
       .populate('projectId', 'title')

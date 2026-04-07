@@ -35,7 +35,7 @@ export async function getNotifications(query: Request['query'], userId: string) 
   const filter: Record<string, unknown> = { userId };
 
   if (query.read !== undefined) filter.read = query.read === 'true';
-  if (query.type) filter.type = query.type;
+  if (query.type) filter.type = String(query.type);
 
   const [notifications, total] = await Promise.all([
     Notification.find(filter)

@@ -37,9 +37,9 @@ export async function getTasks(query: Request['query'], projectId: string) {
   const options = getPaginationOptions(query);
   const filter: Record<string, unknown> = { projectId };
 
-  if (query.status) filter.status = query.status;
-  if (query.priority) filter.priority = query.priority;
-  if (query.assignedTo) filter.assignedTo = query.assignedTo;
+  if (query.status) filter.status = String(query.status);
+  if (query.priority) filter.priority = String(query.priority);
+  if (query.assignedTo) filter.assignedTo = String(query.assignedTo);
 
   const [tasks, total] = await Promise.all([
     Task.find(filter)

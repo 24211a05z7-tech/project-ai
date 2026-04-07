@@ -59,8 +59,8 @@ export async function getDocuments(query: Request['query'], projectId: string) {
   const options = getPaginationOptions(query);
   const filter: Record<string, unknown> = { projectId };
 
-  if (query.status) filter.status = query.status;
-  if (query.taskId) filter.taskId = query.taskId;
+  if (query.status) filter.status = String(query.status);
+  if (query.taskId) filter.taskId = String(query.taskId);
 
   const [documents, total] = await Promise.all([
     DocumentModel.find(filter)

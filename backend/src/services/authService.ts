@@ -15,14 +15,15 @@ export async function registerUser(
   password: string,
   roles?: string[]
 ): Promise<AuthTokens> {
-  const existingUser = await User.findOne({ email });
+  const sanitizedEmail = String(email).toLowerCase().trim();
+  const existingUser = await User.findOne({ email: sanitizedEmail });
   if (existingUser) {
     throw createError('Email already registered', 409);
   }
 
   const user = await User.create({
-    email,
-    name,
+    email: sanitizedEmail,
+    name: String(name).trim(),
     password,
     roles: roles || ['member'],
   });
@@ -36,7 +37,8 @@ export async function registerUser(
 }
 
 export async function loginUser(email: string, password: string): Promise<AuthTokens> {
-  const user = await User.findOne({ email }).select('+password');
+  const sanitizedEmail = String(email).toLowerCase().trim();
+  const user = await User.findOne({ email: sanitizedEmail }).select('+password');
   if (!user || !user.password) {
     throw createError('Invalid credentials', 401);
   }

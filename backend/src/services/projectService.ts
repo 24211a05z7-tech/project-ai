@@ -36,11 +36,12 @@ export async function getProjects(query: Request['query'], userId: string) {
   const options = getPaginationOptions(query);
   const filter: Record<string, unknown> = {};
 
-  if (query.status) filter.status = query.status;
+  if (query.status) filter.status = String(query.status);
   if (query.search) {
+    const searchStr = String(query.search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     filter.$or = [
-      { title: { $regex: query.search, $options: 'i' } },
-      { problemStatement: { $regex: query.search, $options: 'i' } },
+      { title: { $regex: searchStr, $options: 'i' } },
+      { problemStatement: { $regex: searchStr, $options: 'i' } },
     ];
   }
 
@@ -131,15 +132,25 @@ export async function getProjectAnalytics(projectId: string) {
     .populate('documents');
   if (!project) throw createError('Project not found', 404);
 
+  const totalTasks = project.tasks.length;
+  const completedTasksResult = await import('../models/Task').then(({ Task }) =>
+    Task.countDocuments({ projectId, status: 'completed' })
+  );
+  const progress = project.status === 'completed'
+    ? 100
+    : totalTasks > 0
+    ? Math.round((completedTasksResult / totalTasks) * 100)
+    : 0;
+
   return {
     projectId,
     title: project.title,
     status: project.status,
     teamSize: project.teamMembers.length,
-    tasksCount: project.tasks.length,
+    tasksCount: totalTasks,
     documentsCount: project.documents.length,
     reviewsCount: project.reviewsCount,
     totalPoints: project.metadata.totalPoints,
-    progress: project.status === 'completed' ? 100 : Math.floor(Math.random() * 80) + 10,
+    progress,
   };
 }
