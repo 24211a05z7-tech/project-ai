@@ -2,7 +2,7 @@ import { DocumentModel, IDocument } from '../models/Document';
 import { Project } from '../models/Project';
 import { Task } from '../models/Task';
 import { createError } from '../middleware/errorHandler';
-import { getPaginationOptions, buildPaginatedResult } from '../utils/helpers';
+import { getPaginationOptions, buildPaginatedResult, validateObjectId } from '../utils/helpers';
 import { Request } from 'express';
 import { Types } from 'mongoose';
 
@@ -16,15 +16,22 @@ export async function uploadDocument(
   },
   uploaderId: string
 ): Promise<IDocument> {
+  validateObjectId(data.taskId, 'taskId');
+  validateObjectId(data.projectId, 'projectId');
+  validateObjectId(uploaderId, 'uploaderId');
+
   const [task, project] = await Promise.all([
-    Task.findById(data.taskId),
-    Project.findById(data.projectId),
+    Task.findById(new Types.ObjectId(data.taskId)),
+    Project.findById(new Types.ObjectId(data.projectId)),
   ]);
 
   if (!task) throw createError('Task not found', 404);
   if (!project) throw createError('Project not found', 404);
 
-  const existingDoc = await DocumentModel.findOne({ taskId: data.taskId, uploaderId });
+  const existingDoc = await DocumentModel.findOne({
+    taskId: new Types.ObjectId(data.taskId),
+    uploaderId: new Types.ObjectId(uploaderId),
+  });
 
   if (existingDoc) {
     const newVersion = existingDoc.version + 1;
@@ -56,11 +63,15 @@ export async function uploadDocument(
 }
 
 export async function getDocuments(query: Request['query'], projectId: string) {
+  validateObjectId(projectId, 'projectId');
   const options = getPaginationOptions(query);
-  const filter: Record<string, unknown> = { projectId };
+  const filter: Record<string, unknown> = { projectId: new Types.ObjectId(projectId) };
 
   if (query.status) filter.status = String(query.status);
-  if (query.taskId) filter.taskId = String(query.taskId);
+  if (query.taskId) {
+    const taskId = String(query.taskId);
+    if (Types.ObjectId.isValid(taskId)) filter.taskId = new Types.ObjectId(taskId);
+  }
 
   const [documents, total] = await Promise.all([
     DocumentModel.find(filter)
@@ -77,7 +88,8 @@ export async function getDocuments(query: Request['query'], projectId: string) {
 }
 
 export async function getDocumentById(documentId: string): Promise<IDocument> {
-  const doc = await DocumentModel.findById(documentId)
+  validateObjectId(documentId, 'documentId');
+  const doc = await DocumentModel.findById(new Types.ObjectId(documentId))
     .populate('uploaderId', 'name email avatar')
     .populate('reviewedBy', 'name email avatar')
     .populate('taskId', 'title');
@@ -91,7 +103,9 @@ export async function reviewDocument(
   reviewData: { status: 'accepted' | 'rejected'; guideMarks?: number; feedback?: string },
   reviewerId: string
 ): Promise<IDocument> {
-  const doc = await DocumentModel.findById(documentId);
+  validateObjectId(documentId, 'documentId');
+  validateObjectId(reviewerId, 'reviewerId');
+  const doc = await DocumentModel.findById(new Types.ObjectId(documentId));
   if (!doc) throw createError('Document not found', 404);
 
   const project = await Project.findById(doc.projectId);

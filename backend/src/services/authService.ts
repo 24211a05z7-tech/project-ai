@@ -2,6 +2,8 @@ import { User } from '../models/User';
 import { IUser } from '../types';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import { createError } from '../middleware/errorHandler';
+import { validateObjectId } from '../utils/helpers';
+import { Types } from 'mongoose';
 
 interface AuthTokens {
   accessToken: string;
@@ -96,7 +98,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<{ access
     throw createError('Invalid or expired refresh token', 401);
   }
 
-  const user = await User.findById(payload.userId);
+  const user = await User.findById(new Types.ObjectId(payload.userId));
   if (!user) throw createError('User not found', 404);
 
   const newPayload = { userId: user._id.toString(), email: user.email, roles: user.roles };
@@ -104,7 +106,8 @@ export async function refreshAccessToken(refreshToken: string): Promise<{ access
 }
 
 export async function getProfile(userId: string): Promise<IUser> {
-  const user = await User.findById(userId);
+  validateObjectId(userId, 'userId');
+  const user = await User.findById(new Types.ObjectId(userId));
   if (!user) throw createError('User not found', 404);
   return user;
 }
@@ -113,7 +116,8 @@ export async function updateProfile(
   userId: string,
   updates: { name?: string; avatar?: string; preferences?: { theme?: 'light' | 'dark'; notifications?: boolean } }
 ): Promise<IUser> {
-  const user = await User.findByIdAndUpdate(userId, { $set: updates }, { new: true, runValidators: true });
+  validateObjectId(userId, 'userId');
+  const user = await User.findByIdAndUpdate(new Types.ObjectId(userId), { $set: updates }, { new: true, runValidators: true });
   if (!user) throw createError('User not found', 404);
   return user;
 }

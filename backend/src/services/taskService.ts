@@ -1,7 +1,7 @@
 import { Task, ITask } from '../models/Task';
 import { Project } from '../models/Project';
 import { createError } from '../middleware/errorHandler';
-import { getPaginationOptions, buildPaginatedResult } from '../utils/helpers';
+import { getPaginationOptions, buildPaginatedResult, validateObjectId } from '../utils/helpers';
 import { Request } from 'express';
 import { Types } from 'mongoose';
 
@@ -17,7 +17,8 @@ export async function createTask(
   },
   creatorId: string
 ): Promise<ITask> {
-  const project = await Project.findById(data.projectId);
+  validateObjectId(data.projectId, 'projectId');
+  const project = await Project.findById(new Types.ObjectId(data.projectId));
   if (!project) throw createError('Project not found', 404);
 
   const isLeader = project.leaderId.toString() === creatorId;
@@ -34,12 +35,16 @@ export async function createTask(
 }
 
 export async function getTasks(query: Request['query'], projectId: string) {
+  validateObjectId(projectId, 'projectId');
   const options = getPaginationOptions(query);
-  const filter: Record<string, unknown> = { projectId };
+  const filter: Record<string, unknown> = { projectId: new Types.ObjectId(projectId) };
 
   if (query.status) filter.status = String(query.status);
   if (query.priority) filter.priority = String(query.priority);
-  if (query.assignedTo) filter.assignedTo = String(query.assignedTo);
+  if (query.assignedTo) {
+    const assignedTo = String(query.assignedTo);
+    if (Types.ObjectId.isValid(assignedTo)) filter.assignedTo = new Types.ObjectId(assignedTo);
+  }
 
   const [tasks, total] = await Promise.all([
     Task.find(filter)
@@ -55,7 +60,8 @@ export async function getTasks(query: Request['query'], projectId: string) {
 }
 
 export async function getTaskById(taskId: string): Promise<ITask> {
-  const task = await Task.findById(taskId)
+  validateObjectId(taskId, 'taskId');
+  const task = await Task.findById(new Types.ObjectId(taskId))
     .populate('assignedTo', 'name email avatar')
     .populate('completedBy', 'name email avatar')
     .populate('subtasks.assignedTo', 'name email avatar');
@@ -69,7 +75,8 @@ export async function updateTask(
   updates: Partial<ITask>,
   userId: string
 ): Promise<ITask> {
-  const task = await Task.findById(taskId);
+  validateObjectId(taskId, 'taskId');
+  const task = await Task.findById(new Types.ObjectId(taskId));
   if (!task) throw createError('Task not found', 404);
 
   const project = await Project.findById(task.projectId);
@@ -100,7 +107,8 @@ export async function updateTask(
 }
 
 export async function deleteTask(taskId: string, userId: string): Promise<void> {
-  const task = await Task.findById(taskId);
+  validateObjectId(taskId, 'taskId');
+  const task = await Task.findById(new Types.ObjectId(taskId));
   if (!task) throw createError('Task not found', 404);
 
   const project = await Project.findById(task.projectId);
@@ -119,7 +127,8 @@ export async function addSubtask(
   subtaskData: { title: string; description?: string; assignedTo?: string; dueDate?: string },
   userId: string
 ): Promise<ITask> {
-  const task = await Task.findById(taskId);
+  validateObjectId(taskId, 'taskId');
+  const task = await Task.findById(new Types.ObjectId(taskId));
   if (!task) throw createError('Task not found', 404);
 
   const project = await Project.findById(task.projectId);
@@ -147,7 +156,9 @@ export async function updateSubtask(
   subtaskId: string,
   updates: Record<string, unknown>
 ): Promise<ITask> {
-  const task = await Task.findById(taskId);
+  validateObjectId(taskId, 'taskId');
+  validateObjectId(subtaskId, 'subtaskId');
+  const task = await Task.findById(new Types.ObjectId(taskId));
   if (!task) throw createError('Task not found', 404);
 
   const subtask = task.subtasks.id(subtaskId);

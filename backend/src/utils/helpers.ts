@@ -1,5 +1,15 @@
 import { PaginationOptions, PaginatedResult } from '../types';
 import { Request } from 'express';
+import { Types } from 'mongoose';
+import { AppError } from '../middleware/errorHandler';
+
+export function validateObjectId(id: string, label = 'ID'): void {
+  if (!Types.ObjectId.isValid(id)) {
+    const error: AppError = new Error(`Invalid ${label} format`);
+    error.statusCode = 400;
+    throw error;
+  }
+}
 
 export function getPaginationOptions(query: Request['query']): PaginationOptions {
   const page = Math.max(1, parseInt(String(query.page || '1'), 10));

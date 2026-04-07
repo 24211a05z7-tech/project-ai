@@ -1,7 +1,7 @@
 import { Project, IProject } from '../models/Project';
 import { User } from '../models/User';
 import { createError } from '../middleware/errorHandler';
-import { getPaginationOptions, buildPaginatedResult } from '../utils/helpers';
+import { getPaginationOptions, buildPaginatedResult, validateObjectId } from '../utils/helpers';
 import { Request } from 'express';
 import { Types } from 'mongoose';
 
@@ -69,7 +69,8 @@ export async function getProjects(query: Request['query'], userId: string) {
 }
 
 export async function getProjectById(projectId: string, userId: string): Promise<IProject> {
-  const project = await Project.findById(projectId)
+  validateObjectId(projectId, 'projectId');
+  const project = await Project.findById(new Types.ObjectId(projectId))
     .populate('leaderId', 'name email avatar')
     .populate('teamMembers.userId', 'name email avatar')
     .populate('guideId', 'name email avatar')
@@ -92,7 +93,8 @@ export async function updateProject(
   updates: Partial<IProject>,
   userId: string
 ): Promise<IProject> {
-  const project = await Project.findById(projectId);
+  validateObjectId(projectId, 'projectId');
+  const project = await Project.findById(new Types.ObjectId(projectId));
   if (!project) throw createError('Project not found', 404);
   if (project.leaderId.toString() !== userId) throw createError('Only the project leader can update the project', 403);
 
@@ -102,7 +104,9 @@ export async function updateProject(
 }
 
 export async function addTeamMember(projectId: string, memberId: string, role: string, requesterId: string): Promise<IProject> {
-  const project = await Project.findById(projectId);
+  validateObjectId(projectId, 'projectId');
+  validateObjectId(memberId, 'memberId');
+  const project = await Project.findById(new Types.ObjectId(projectId));
   if (!project) throw createError('Project not found', 404);
   if (project.leaderId.toString() !== requesterId) throw createError('Only the leader can add members', 403);
 
@@ -116,7 +120,9 @@ export async function addTeamMember(projectId: string, memberId: string, role: s
 }
 
 export async function removeTeamMember(projectId: string, memberId: string, requesterId: string): Promise<IProject> {
-  const project = await Project.findById(projectId);
+  validateObjectId(projectId, 'projectId');
+  validateObjectId(memberId, 'memberId');
+  const project = await Project.findById(new Types.ObjectId(projectId));
   if (!project) throw createError('Project not found', 404);
   if (project.leaderId.toString() !== requesterId) throw createError('Only the leader can remove members', 403);
 
@@ -127,7 +133,8 @@ export async function removeTeamMember(projectId: string, memberId: string, requ
 }
 
 export async function getProjectAnalytics(projectId: string) {
-  const project = await Project.findById(projectId)
+  validateObjectId(projectId, 'projectId');
+  const project = await Project.findById(new Types.ObjectId(projectId))
     .populate('tasks')
     .populate('documents');
   if (!project) throw createError('Project not found', 404);
