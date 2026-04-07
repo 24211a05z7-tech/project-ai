@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '../types';
 import * as authService from '../services/authService';
+import { env } from '../config/env';
 
 export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -55,10 +56,10 @@ export async function updateProfile(req: Request, res: Response, next: NextFunct
 export async function googleCallback(req: Request, res: Response): Promise<void> {
   const user = (req as AuthRequest).user as unknown as { accessToken: string; refreshToken: string };
   if (!user) {
-    res.redirect(`${process.env.CLIENT_URL}/auth/error`);
+    res.redirect(`${env.CLIENT_URL}/auth/error`);
     return;
   }
   res.redirect(
-    `${process.env.CLIENT_URL}/auth/callback?accessToken=${user.accessToken}&refreshToken=${user.refreshToken}`
+    `${env.CLIENT_URL}/auth/callback?accessToken=${user.accessToken}&refreshToken=${user.refreshToken}`
   );
 }

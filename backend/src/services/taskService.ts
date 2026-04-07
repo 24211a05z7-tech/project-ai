@@ -130,12 +130,13 @@ export async function addSubtask(
   if (!isLeader && !isAssignee) throw createError('Permission denied', 403);
 
   task.subtasks.push({
+    _id: new Types.ObjectId(),
     title: subtaskData.title,
     description: subtaskData.description,
-    status: 'todo',
+    status: 'todo' as const,
     assignedTo: subtaskData.assignedTo ? new Types.ObjectId(subtaskData.assignedTo) : undefined,
     dueDate: subtaskData.dueDate ? new Date(subtaskData.dueDate) : undefined,
-  } as never);
+  });
 
   await task.save();
   return task;
