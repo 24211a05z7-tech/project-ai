@@ -58,7 +58,7 @@ export async function uploadDocument(
     versions: [{ version: 1, fileUrl: data.fileUrl, uploadedAt: new Date(), uploaderId }],
   });
 
-  await Project.findByIdAndUpdate(data.projectId, { $addToSet: { documents: doc._id } });
+  await Project.findByIdAndUpdate(new Types.ObjectId(data.projectId), { $addToSet: { documents: doc._id } });
   return doc;
 }
 

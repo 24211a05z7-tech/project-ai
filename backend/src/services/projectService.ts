@@ -98,7 +98,7 @@ export async function updateProject(
   if (!project) throw createError('Project not found', 404);
   if (project.leaderId.toString() !== userId) throw createError('Only the project leader can update the project', 403);
 
-  const updated = await Project.findByIdAndUpdate(projectId, { $set: updates }, { new: true, runValidators: true });
+  const updated = await Project.findByIdAndUpdate(new Types.ObjectId(projectId), { $set: updates }, { new: true, runValidators: true });
   if (!updated) throw createError('Project not found', 404);
   return updated;
 }
@@ -115,7 +115,7 @@ export async function addTeamMember(projectId: string, memberId: string, role: s
 
   project.teamMembers.push({ userId: new Types.ObjectId(memberId), role, joinedAt: new Date() });
   await project.save();
-  await User.findByIdAndUpdate(memberId, { $addToSet: { projects: project._id } });
+  await User.findByIdAndUpdate(new Types.ObjectId(memberId), { $addToSet: { projects: project._id } });
   return project;
 }
 
@@ -128,7 +128,7 @@ export async function removeTeamMember(projectId: string, memberId: string, requ
 
   project.teamMembers = project.teamMembers.filter((m) => m.userId.toString() !== memberId);
   await project.save();
-  await User.findByIdAndUpdate(memberId, { $pull: { projects: project._id } });
+  await User.findByIdAndUpdate(new Types.ObjectId(memberId), { $pull: { projects: project._id } });
   return project;
 }
 

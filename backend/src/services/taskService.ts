@@ -30,7 +30,7 @@ export async function createTask(
     dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
   });
 
-  await Project.findByIdAndUpdate(data.projectId, { $push: { tasks: task._id } });
+  await Project.findByIdAndUpdate(new Types.ObjectId(data.projectId), { $push: { tasks: task._id } });
   return task;
 }
 
