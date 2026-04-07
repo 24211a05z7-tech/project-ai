@@ -1,5 +1,9 @@
 import { formatDistanceToNow, format } from 'date-fns';
 
+export function cn(...classes: (string | undefined | false | null)[]): string {
+  return classes.filter(Boolean).join(' ');
+}
+
 export const formatDate = (date: string | Date): string =>
   format(new Date(date), 'MMM dd, yyyy');
 
